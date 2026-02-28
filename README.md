@@ -240,6 +240,17 @@ openclaw-assistant/
 - Prefer `small.en` or `base` models
 - Keep sample rate `16000`
 
+## 9) Speech Capture Tuning
+
+If you get "No speech detected":
+
+- Increase `OPENCLAW_WAKEWORD_START_DELAY` (default `0.4`)
+- Increase `OPENCLAW_RECORD_MIN_SECONDS` (e.g., `1.5`)
+- Lower `OPENCLAW_SILENCE_THRESHOLD` (e.g., `140`)
+- Increase `OPENCLAW_SILENCE_SECONDS` (e.g., `1.2`)
+
+A short beep is played after wake word detection (`OPENCLAW_BEEP_*`).
+
 ---
 
 ## 9) Troubleshooting

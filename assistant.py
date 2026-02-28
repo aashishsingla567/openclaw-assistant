@@ -113,6 +113,14 @@ class OpenClawAssistant:
         merged = np.concatenate(chunks).astype(np.float32) / 32768.0
         return merged
 
+    def _beep(self) -> None:
+        duration = max(0.02, self.settings.beep_duration_seconds)
+        sample_rate = self.settings.command_sample_rate
+        t = np.linspace(0, duration, int(sample_rate * duration), False)
+        tone = 0.2 * np.sin(2 * np.pi * self.settings.beep_frequency_hz * t)
+        sd.play(tone.astype(np.float32), sample_rate, device=self.settings.audio_output_device)
+        sd.wait()
+
     def _transcribe(self, audio: np.ndarray) -> str:
         if audio.size == 0:
             return ""
@@ -186,6 +194,12 @@ class OpenClawAssistant:
                     pcm = np.frombuffer(pcm_bytes, dtype=np.int16)
                     if porcupine.process(pcm) >= 0:
                         logging.info("Wake word detected.")
+                        try:
+                            self._beep()
+                        except Exception as error:
+                            logging.warning("Beep failed: %s", error)
+                        if self.settings.wakeword_start_delay > 0:
+                            self.stop_event.wait(self.settings.wakeword_start_delay)
                         audio = self._record_command_audio()
                         text = self._transcribe(audio)
                         if text:
