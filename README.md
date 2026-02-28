@@ -13,11 +13,6 @@ Stack:
 ## 1) Shell Commands (Exact Order)
 
 ```bash
-# Install system deps (Apple Silicon macOS)
-brew install portaudio libsndfile espeak-ng git-lfs
-```
-
-```bash
 # Install uv (if not installed)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
@@ -32,29 +27,8 @@ cd openclaw-assistant
 ```
 
 ```bash
-# Python deps
-uv sync
-```
-
-```bash
-# Model + asset dirs
-mkdir -p models/kokoro models/porcupine models/whisper upgrades launchd
-```
-
-```bash
-# Kokoro model files
-curl -L -o models/kokoro/kokoro-v1.0.onnx \
-  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
-```
-
-```bash
-curl -L -o models/kokoro/voices-v1.0.bin \
-  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
-```
-
-```bash
-# Environment config
-cp .env.example .env
+# One-command onboarding
+./scripts/setup.sh
 ```
 
 ```bash
