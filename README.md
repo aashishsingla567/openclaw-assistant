@@ -27,7 +27,7 @@ cd openclaw-assistant
 ```
 
 ```bash
-# One-command onboarding (asks for key + wake word, lets you pick .ppn, then runs)
+# One-command onboarding (detects OpenClaw REST, asks for key + wake word, lets you pick .ppn, then runs)
 uv run ./onboard/setup.py
 ```
 

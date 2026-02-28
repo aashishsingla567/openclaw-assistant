@@ -81,6 +81,39 @@ def download_kokoro_models() -> None:
         ])
 
 
+def _set_env_key(lines: list[str], key: str, value: str) -> list[str]:
+    updated = False
+    new_lines = []
+    for line in lines:
+        if line.startswith(f"{key}="):
+            new_lines.append(f"{key}={value}")
+            updated = True
+        else:
+            new_lines.append(line)
+    if not updated:
+        new_lines.append(f"{key}={value}")
+    return new_lines
+
+
+def _detect_openclaw_rest_url() -> str | None:
+    cli_path = os.environ.get("OPENCLAW_CLI") or "openclaw"
+    try:
+        result = subprocess.run(
+            [cli_path, "status"], capture_output=True, text=True, check=True
+        )
+    except Exception:
+        return None
+    for line in result.stdout.splitlines():
+        if "Gateway" in line and "ws://" in line:
+            # example: "Gateway         │ local · ws://127.0.0.1:18789 (local loopback)"
+            parts = line.split("ws://", 1)
+            if len(parts) < 2:
+                continue
+            host_port = parts[1].split()[0].strip()
+            return f"http://{host_port}/v1/assistant"
+    return None
+
+
 def prepare_env() -> None:
     env_path = REPO_DIR / ".env"
     if not env_path.exists():
@@ -98,26 +131,23 @@ def prepare_env() -> None:
     if not porcupine_key:
         err("PORCUPINE_ACCESS_KEY is required")
 
-    wakeword_label = input("Wake word phrase (e.g., OpenClaw): ").strip()
-    if not wakeword_label:
-        wakeword_label = "wake word"
+    wakeword_label = input("Wake word phrase (e.g., OpenClaw): ").strip() or "wake word"
+
+    openclaw_rest = _detect_openclaw_rest_url()
+    if openclaw_rest:
+        print(f"Detected OpenClaw REST URL: {openclaw_rest}")
+    else:
+        openclaw_rest = input(
+            "OpenClaw REST URL (e.g., http://127.0.0.1:18789/v1/assistant): "
+        ).strip()
+        if not openclaw_rest:
+            err("OPENCLAW_REST_URL is required")
 
     lines = env_path.read_text().splitlines()
-    updated = False
-    new_lines = []
-    for line in lines:
-        if line.startswith("PORCUPINE_ACCESS_KEY="):
-            new_lines.append(f"PORCUPINE_ACCESS_KEY={porcupine_key}")
-            updated = True
-        elif line.startswith("WAKEWORD_LABEL="):
-            new_lines.append(f"WAKEWORD_LABEL={wakeword_label}")
-            updated = True
-        else:
-            new_lines.append(line)
-    if not updated:
-        new_lines.append(f"PORCUPINE_ACCESS_KEY={porcupine_key}")
-        new_lines.append(f"WAKEWORD_LABEL={wakeword_label}")
-    env_path.write_text("\n".join(new_lines) + "\n")
+    lines = _set_env_key(lines, "PORCUPINE_ACCESS_KEY", porcupine_key)
+    lines = _set_env_key(lines, "WAKEWORD_LABEL", wakeword_label)
+    lines = _set_env_key(lines, "OPENCLAW_REST_URL", openclaw_rest)
+    env_path.write_text("\n".join(lines) + "\n")
 
 
 def select_wakeword_file() -> None:
