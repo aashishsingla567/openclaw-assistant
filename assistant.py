@@ -34,9 +34,16 @@ class OpenClawAssistant:
             download_root=str(settings.whisper_download_root),
         )
         self.kokoro: Kokoro | None = None
+        self._output_stream: sd.OutputStream | None = None
 
     def stop(self) -> None:
         self.stop_event.set()
+        if self._output_stream is not None:
+            try:
+                self._output_stream.stop()
+                self._output_stream.close()
+            finally:
+                self._output_stream = None
 
     def _require_files(self) -> None:
         if not self.settings.porcupine_access_key:
@@ -60,6 +67,17 @@ class OpenClawAssistant:
             )
         return self.kokoro
 
+    def _ensure_output_stream(self, sample_rate: int) -> sd.OutputStream:
+        if self._output_stream is None:
+            self._output_stream = sd.OutputStream(
+                samplerate=sample_rate,
+                channels=1,
+                dtype="float32",
+                device=self.settings.audio_output_device,
+            )
+            self._output_stream.start()
+        return self._output_stream
+
     def _speak(self, text: str) -> None:
         if not text:
             return
@@ -74,8 +92,11 @@ class OpenClawAssistant:
             audio = np.asarray(samples, dtype=np.float32)
             fade_ms = max(0.0, self.settings.tts_fade_ms)
             pad_ms = max(0.0, self.settings.tts_padding_ms)
+            prewarm_ms = max(0.0, self.settings.tts_prewarm_ms)
             fade_len = int(sample_rate * (fade_ms / 1000.0))
             pad_len = int(sample_rate * (pad_ms / 1000.0))
+            prewarm_len = int(sample_rate * (prewarm_ms / 1000.0))
+
             if fade_len > 0 and audio.size > fade_len * 2:
                 fade_in = np.linspace(0.0, 1.0, fade_len, dtype=np.float32)
                 fade_out = np.linspace(1.0, 0.0, fade_len, dtype=np.float32)
@@ -84,8 +105,11 @@ class OpenClawAssistant:
             if pad_len > 0:
                 pad = np.zeros(pad_len, dtype=np.float32)
                 audio = np.concatenate([pad, audio, pad])
-            sd.play(audio, sample_rate, device=self.settings.audio_output_device)
-            sd.wait()
+
+            stream = self._ensure_output_stream(sample_rate)
+            if prewarm_len > 0:
+                stream.write(np.zeros(prewarm_len, dtype=np.float32))
+            stream.write(audio)
 
     def _record_command_audio(self) -> np.ndarray:
         chunk_seconds = 0.1

@@ -36,6 +36,7 @@ class Settings:
     wakeword_label: str
     tts_fade_ms: float
     tts_padding_ms: float
+    tts_prewarm_ms: float
 
 
 def _maybe_int(value: str | None) -> str | int | None:
@@ -118,4 +119,5 @@ def load_settings() -> Settings:
         wakeword_label=os.getenv("WAKEWORD_LABEL", "wake word").strip(),
         tts_fade_ms=_env_float("OPENCLAW_TTS_FADE_MS", 20.0),
         tts_padding_ms=_env_float("OPENCLAW_TTS_PADDING_MS", 40.0),
+        tts_prewarm_ms=_env_float("OPENCLAW_TTS_PREWARM_MS", 50.0),
     )

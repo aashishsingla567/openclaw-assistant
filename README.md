@@ -277,9 +277,10 @@ If you get "No speech detected":
 
 Listening feedback uses TTS prompts (`OPENCLAW_WAKE_HELLO_PROMPT`, `OPENCLAW_LISTEN_START_PROMPT`).
 
-TTS smoothing (fade + padding):
+TTS smoothing (fade + padding + prewarm):
 - `OPENCLAW_TTS_FADE_MS` (default 20)
 - `OPENCLAW_TTS_PADDING_MS` (default 40)
+- `OPENCLAW_TTS_PREWARM_MS` (default 50)
 
 ---
 
