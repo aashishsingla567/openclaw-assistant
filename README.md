@@ -55,6 +55,12 @@ uv run ./onboard/diagnostics.py --stt --seconds 4
 
 # Diagnostics: OpenClaw REST
 uv run ./onboard/diagnostics.py --openclaw --text "Ping"
+
+# Diagnostics: wakeword detection (listens up to 10s by default)
+uv run ./onboard/diagnostics.py --wakeword
+
+# Diagnostics: wakeword detection with custom timeout
+uv run ./onboard/diagnostics.py --wakeword --wakeword-timeout 15
 ```
 
 ```bash
