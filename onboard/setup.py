@@ -4,9 +4,9 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable
 
 REPO_DIR = Path(__file__).resolve().parents[1]
 
@@ -196,7 +196,14 @@ def select_wakeword_file() -> None:
 
 def run_assistant() -> None:
     info("Starting assistant")
-    run(["/usr/bin/env", "bash", "-lc", "set -a && source .env && set +a && uv run python assistant.py"])
+    run(
+        [
+            "/usr/bin/env",
+            "bash",
+            "-lc",
+            "set -a && source .env && set +a && uv run openclaw run",
+        ]
+    )
 
 
 def print_next_steps() -> None:
@@ -207,11 +214,14 @@ def print_next_steps() -> None:
         "  https://console.picovoice.ai/\n\n"
         "Next steps:\n"
         "1) Run:  set -a && source .env && set +a\n"
-        "2) Start: uv run python assistant.py\n"
+        "2) Start: uv run openclaw run\n"
         "3) (Optional) Install launchd:\n"
-        "   sed \"s#__REPO_PATH__#$(pwd)#g\" launchd/com.openclaw.assistant.plist > /tmp/com.openclaw.assistant.plist\n"
-        "   cp /tmp/com.openclaw.assistant.plist ~/Library/LaunchAgents/com.openclaw.assistant.plist\n"
-        "   launchctl unload ~/Library/LaunchAgents/com.openclaw.assistant.plist 2>/dev/null || true\n"
+        "   sed \"s#__REPO_PATH__#$(pwd)#g\" launchd/com.openclaw.assistant.plist "
+        "> /tmp/com.openclaw.assistant.plist\n"
+        "   cp /tmp/com.openclaw.assistant.plist "
+        "~/Library/LaunchAgents/com.openclaw.assistant.plist\n"
+        "   launchctl unload "
+        "~/Library/LaunchAgents/com.openclaw.assistant.plist 2>/dev/null || true\n"
         "   launchctl load ~/Library/LaunchAgents/com.openclaw.assistant.plist\n"
     )
 

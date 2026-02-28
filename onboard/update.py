@@ -37,7 +37,7 @@ def main() -> None:
             "/usr/bin/env",
             "bash",
             "-lc",
-            "set -a && source .env && set +a && uv run python assistant.py",
+            "set -a && source .env && set +a && uv run openclaw run",
         ])
         return
 
