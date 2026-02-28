@@ -135,9 +135,22 @@ def select_wakeword_file() -> None:
         if not source_path:
             err("No file selected")
         source = Path(source_path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if source.suffix.lower() == ".zip":
+            unzip_dir = target.parent / "_tmp_unzip"
+            if unzip_dir.exists():
+                for child in unzip_dir.iterdir():
+                    if child.is_file():
+                        child.unlink()
+                unzip_dir.rmdir()
+            unzip_dir.mkdir(parents=True, exist_ok=True)
+            run(["/usr/bin/unzip", "-o", str(source), "-d", str(unzip_dir)])
+            ppn_files = list(unzip_dir.rglob("*.ppn"))
+            if not ppn_files:
+                err("No .ppn file found in zip")
+            source = ppn_files[0]
         if source.suffix.lower() != ".ppn":
             err("Selected file is not a .ppn file")
-        target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(source.read_bytes())
     except subprocess.CalledProcessError:
         err("File selection cancelled or failed")
