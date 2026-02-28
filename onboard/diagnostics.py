@@ -25,6 +25,11 @@ def list_devices() -> None:
 
 def test_tts(text: str) -> None:
     settings = load_settings()
+    print("TTS settings:")
+    print(f"  fade_ms={settings.tts_fade_ms}")
+    print(f"  padding_ms={settings.tts_padding_ms}")
+    print(f"  prewarm_ms={settings.tts_prewarm_ms}")
+    print(f"  output_device={settings.audio_output_device}")
     kokoro = Kokoro(str(settings.kokoro_model_path), str(settings.kokoro_voices_path))
     samples, sample_rate = kokoro.create(
         text,
