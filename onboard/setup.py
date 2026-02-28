@@ -88,6 +88,11 @@ def prepare_env() -> None:
         if not env_example.exists():
             err(".env.example not found")
         env_path.write_text(env_example.read_text())
+    else:
+        choice = input(".env already exists. Update PORCUPINE_ACCESS_KEY? [y/N]: ").strip().lower()
+        if choice != "y":
+            print("Warning: keeping existing .env")
+            return
 
     porcupine_key = input("Paste PORCUPINE_ACCESS_KEY: ").strip()
     if not porcupine_key:
@@ -109,6 +114,11 @@ def prepare_env() -> None:
 
 def select_wakeword_file() -> None:
     target = REPO_DIR / "models" / "porcupine" / "openclaw_mac.ppn"
+    if target.exists():
+        choice = input("Wake word .ppn already exists. Replace it? [y/N]: ").strip().lower()
+        if choice != "y":
+            print("Warning: keeping existing wake word file")
+            return
     info("Select your Porcupine .ppn wake word file")
     try:
         result = subprocess.run(
