@@ -117,8 +117,11 @@ class OpenClawAssistant:
         duration = max(0.02, self.settings.beep_duration_seconds)
         sample_rate = self.settings.command_sample_rate
         t = np.linspace(0, duration, int(sample_rate * duration), False)
-        tone = 0.2 * np.sin(2 * np.pi * self.settings.beep_frequency_hz * t)
-        sd.play(tone.astype(np.float32), sample_rate, device=self.settings.audio_output_device)
+        tone1 = 0.18 * np.sin(2 * np.pi * self.settings.beep_frequency_hz * t)
+        tone2 = 0.18 * np.sin(2 * np.pi * self.settings.beep_frequency_hz_2 * t)
+        gap = np.zeros(int(sample_rate * 0.02), dtype=np.float32)
+        signal = np.concatenate([tone1.astype(np.float32), gap, tone2.astype(np.float32)])
+        sd.play(signal, sample_rate, device=self.settings.audio_output_device)
         sd.wait()
 
     def _transcribe(self, audio: np.ndarray) -> str:
