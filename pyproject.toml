@@ -1,0 +1,14 @@
+[project]
+name = "openclaw-assistant"
+version = "0.1.0"
+description = "Deterministic local macOS OpenClaw voice assistant"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "faster-whisper>=1.2.1",
+    "kokoro-onnx>=0.4.9",
+    "numpy>=2.2.6",
+    "pvporcupine>=3.0.5",
+    "requests>=2.32.5",
+    "sounddevice>=0.5.5",
+]
