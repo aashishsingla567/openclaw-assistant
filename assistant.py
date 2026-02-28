@@ -113,14 +113,13 @@ class OpenClawAssistant:
         merged = np.concatenate(chunks).astype(np.float32) / 32768.0
         return merged
 
-    def _listen_feedback(self, start: bool) -> None:
-        prompt = self.settings.listen_start_prompt if start else self.settings.listen_end_prompt
-        if not prompt:
+    def _speak_prompt(self, text: str) -> None:
+        if not text:
             return
         try:
-            self._speak(prompt)
+            self._speak(text)
         except Exception as error:
-            logging.warning("Listen feedback failed: %s", error)
+            logging.warning("TTS prompt failed: %s", error)
 
     def _transcribe(self, audio: np.ndarray) -> str:
         if audio.size == 0:
@@ -195,7 +194,8 @@ class OpenClawAssistant:
                     pcm = np.frombuffer(pcm_bytes, dtype=np.int16)
                     if porcupine.process(pcm) >= 0:
                         logging.info("Wake word detected.")
-                        self._listen_feedback(start=True)
+                        self._speak_prompt(self.settings.wake_hello_prompt)
+                        self._speak_prompt(self.settings.listen_start_prompt)
                         if self.settings.wakeword_start_delay > 0:
                             self.stop_event.wait(self.settings.wakeword_start_delay)
                         audio = self._record_command_audio()
@@ -204,7 +204,6 @@ class OpenClawAssistant:
                             self._process_prompt(prompt=text)
                         else:
                             logging.info("No speech detected after wake word.")
-                        self._listen_feedback(start=False)
         finally:
             porcupine.delete()
 
