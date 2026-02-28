@@ -44,6 +44,20 @@ OPENCLAW_DEV=1 ./onboard/update.py
 ```
 
 ```bash
+# Diagnostics: list devices
+./onboard/diagnostics.py --list-devices
+
+# Diagnostics: TTS
+./onboard/diagnostics.py --tts --text "Hello from Kokoro"
+
+# Diagnostics: STT
+./onboard/diagnostics.py --stt --seconds 4
+
+# Diagnostics: OpenClaw REST
+./onboard/diagnostics.py --openclaw --text "Ping"
+```
+
+```bash
 # Load env and run (first launch)
 set -a && source .env && set +a
 uv run python assistant.py
