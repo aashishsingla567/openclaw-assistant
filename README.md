@@ -28,33 +28,33 @@ cd openclaw-assistant
 
 ```bash
 # One-command onboarding (asks for key + wake word, lets you pick .ppn, then runs)
-./onboard/setup.py
+uv run ./onboard/setup.py
 ```
 
 ```bash
 # Update + reload after repo changes
-./onboard/update.py
+uv run ./onboard/update.py
 ```
 
 ```bash
 # Update + run in foreground with logs
-./onboard/update.py --dev
+uv run ./onboard/update.py --dev
 # or:
-OPENCLAW_DEV=1 ./onboard/update.py
+OPENCLAW_DEV=1 uv run ./onboard/update.py
 ```
 
 ```bash
 # Diagnostics: list devices
-./onboard/diagnostics.py --list-devices
+uv run ./onboard/diagnostics.py --list-devices
 
 # Diagnostics: TTS
-./onboard/diagnostics.py --tts --text "Hello from Kokoro"
+uv run ./onboard/diagnostics.py --tts --text "Hello from Kokoro"
 
 # Diagnostics: STT
-./onboard/diagnostics.py --stt --seconds 4
+uv run ./onboard/diagnostics.py --stt --seconds 4
 
 # Diagnostics: OpenClaw REST
-./onboard/diagnostics.py --openclaw --text "Ping"
+uv run ./onboard/diagnostics.py --openclaw --text "Ping"
 ```
 
 ```bash
