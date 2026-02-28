@@ -39,6 +39,57 @@ uv run python assistant.py
 
 ---
 
+## Manual Setup (if auto setup fails)
+
+```bash
+# Install system deps (Apple Silicon macOS)
+brew install portaudio libsndfile espeak-ng git-lfs
+```
+
+```bash
+# Install uv (if not installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+```bash
+# Python deps
+uv sync
+```
+
+```bash
+# Model + asset dirs
+mkdir -p models/kokoro models/porcupine models/whisper
+```
+
+```bash
+# Kokoro model files
+curl -L -o models/kokoro/kokoro-v1.0.onnx \
+  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+```
+
+```bash
+curl -L -o models/kokoro/voices-v1.0.bin \
+  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+```
+
+```bash
+# Environment config
+cp .env.example .env
+```
+
+```bash
+# Edit .env and set PORCUPINE_ACCESS_KEY
+# Place wake word model at ./models/porcupine/openclaw_mac.ppn
+```
+
+```bash
+# Load env and run
+set -a && source .env && set +a
+uv run python assistant.py
+```
+
+---
+
 ## 2) Wake-Word Training (Porcupine Custom Keyword)
 
 1. Open `https://console.picovoice.ai/`.
