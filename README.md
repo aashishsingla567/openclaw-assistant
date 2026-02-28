@@ -13,18 +13,36 @@ Stack:
 ## 1) Shell Commands (Exact Order)
 
 ```bash
-cd /Users/aashishsingla/Development/experiment/openclaw-assistant
+# Install system deps (Apple Silicon macOS)
+brew install portaudio libsndfile espeak-ng git-lfs
 ```
 
 ```bash
+# Install uv (if not installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+```bash
+# Clone repo
+cd ~/Development/experiment
+rm -rf openclaw-assistant
+
+git clone https://github.com/aashishsingla567/openclaw-assistant.git
+cd openclaw-assistant
+```
+
+```bash
+# Python deps
 uv sync
 ```
 
 ```bash
+# Model + asset dirs
 mkdir -p models/kokoro models/porcupine models/whisper upgrades launchd
 ```
 
 ```bash
+# Kokoro model files
 curl -L -o models/kokoro/kokoro-v1.0.onnx \
   https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
 ```
@@ -35,14 +53,13 @@ curl -L -o models/kokoro/voices-v1.0.bin \
 ```
 
 ```bash
+# Environment config
 cp .env.example .env
 ```
 
 ```bash
+# Load env and run (first launch)
 set -a && source .env && set +a
-```
-
-```bash
 uv run python assistant.py
 ```
 
@@ -71,7 +88,16 @@ PORCUPINE_SENSITIVITY=0.55
 
 ---
 
-## 3) OpenClaw Cron (Proactive Prompts)
+## 3) OpenClaw Requirements
+
+- OpenClaw must be running locally.
+- REST endpoint must be reachable at `OPENCLAW_REST_URL` (default `http://127.0.0.1:3000/v1/assistant`).
+- If you run OpenClaw on a different host/port, update `.env`.
+
+Mic permissions (macOS):
+- System Settings → Privacy & Security → Microphone → enable for your terminal app.
+
+## 4) OpenClaw Cron (Proactive Prompts)
 
 Use **OpenClaw’s built-in cron** (Gateway scheduler). Example:
 
@@ -98,7 +124,7 @@ openclaw cron add \
 
 ---
 
-## 4) launchd Setup (Auto-Start)
+## 5) launchd Setup (Auto-Start)
 
 ```bash
 cp launchd/com.openclaw.assistant.plist ~/Library/LaunchAgents/com.openclaw.assistant.plist
@@ -122,7 +148,7 @@ Logs:
 
 ---
 
-## 5) Directory Structure
+## 6) Directory Structure
 
 ```text
 openclaw-assistant/
@@ -146,15 +172,24 @@ openclaw-assistant/
 
 ---
 
-## 6) Runtime Notes
+## 7) Runtime Notes
 
 - Pipeline: wake word -> silence-bounded recording -> faster-whisper -> OpenClaw REST -> Kokoro TTS.
 - REST endpoint set via `OPENCLAW_REST_URL` (default `http://127.0.0.1:3000/v1/assistant`).
 
 ---
 
-## 7) Performance (M-series Macs)
+## 8) Performance (M-series Macs)
 
 - `OPENCLAW_WHISPER_COMPUTE_TYPE=int8`
 - Prefer `small.en` or `base` models
 - Keep sample rate `16000`
+
+---
+
+## 9) Troubleshooting
+
+- **No wake word detection**: verify `.ppn` path in `.env` and `PORCUPINE_ACCESS_KEY`.
+- **No audio input**: check mic permissions for your terminal.
+- **No response**: confirm OpenClaw is running and `OPENCLAW_REST_URL` is reachable.
+- **TTS silent**: verify Kokoro files in `models/kokoro/` and `KOKORO_*` paths.
