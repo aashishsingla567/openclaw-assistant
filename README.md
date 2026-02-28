@@ -249,7 +249,7 @@ If you get "No speech detected":
 - Lower `OPENCLAW_SILENCE_THRESHOLD` (e.g., `140`)
 - Increase `OPENCLAW_SILENCE_SECONDS` (e.g., `1.2`)
 
-A two-tone chime is played after wake word detection (`OPENCLAW_BEEP_*`).
+Listening feedback uses TTS prompts (`OPENCLAW_LISTEN_START_PROMPT`, `OPENCLAW_LISTEN_END_PROMPT`).
 
 ---
 

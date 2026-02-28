@@ -19,9 +19,8 @@ class Settings:
     silence_seconds: float
     silence_threshold: float
     wakeword_start_delay: float
-    beep_frequency_hz: float
-    beep_frequency_hz_2: float
-    beep_duration_seconds: float
+    listen_start_prompt: str
+    listen_end_prompt: str
     whisper_model: str
     whisper_device: str
     whisper_compute_type: str
@@ -81,9 +80,8 @@ def load_settings() -> Settings:
         silence_seconds=_env_float("OPENCLAW_SILENCE_SECONDS", 0.9),
         silence_threshold=_env_float("OPENCLAW_SILENCE_THRESHOLD", 180.0),
         wakeword_start_delay=_env_float("OPENCLAW_WAKEWORD_START_DELAY", 0.4),
-        beep_frequency_hz=_env_float("OPENCLAW_BEEP_FREQUENCY_HZ", 660.0),
-        beep_frequency_hz_2=_env_float("OPENCLAW_BEEP_FREQUENCY_HZ_2", 990.0),
-        beep_duration_seconds=_env_float("OPENCLAW_BEEP_DURATION_SECONDS", 0.08),
+        listen_start_prompt=os.getenv("OPENCLAW_LISTEN_START_PROMPT", "Listening").strip(),
+        listen_end_prompt=os.getenv("OPENCLAW_LISTEN_END_PROMPT", "Done").strip(),
         whisper_model=os.getenv("OPENCLAW_WHISPER_MODEL", "small.en"),
         whisper_device=os.getenv("OPENCLAW_WHISPER_DEVICE", "cpu"),
         whisper_compute_type=os.getenv(

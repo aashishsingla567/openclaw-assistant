@@ -113,16 +113,14 @@ class OpenClawAssistant:
         merged = np.concatenate(chunks).astype(np.float32) / 32768.0
         return merged
 
-    def _beep(self) -> None:
-        duration = max(0.02, self.settings.beep_duration_seconds)
-        sample_rate = self.settings.command_sample_rate
-        t = np.linspace(0, duration, int(sample_rate * duration), False)
-        tone1 = 0.18 * np.sin(2 * np.pi * self.settings.beep_frequency_hz * t)
-        tone2 = 0.18 * np.sin(2 * np.pi * self.settings.beep_frequency_hz_2 * t)
-        gap = np.zeros(int(sample_rate * 0.02), dtype=np.float32)
-        signal = np.concatenate([tone1.astype(np.float32), gap, tone2.astype(np.float32)])
-        sd.play(signal, sample_rate, device=self.settings.audio_output_device)
-        sd.wait()
+    def _listen_feedback(self, start: bool) -> None:
+        prompt = self.settings.listen_start_prompt if start else self.settings.listen_end_prompt
+        if not prompt:
+            return
+        try:
+            self._speak(prompt)
+        except Exception as error:
+            logging.warning("Listen feedback failed: %s", error)
 
     def _transcribe(self, audio: np.ndarray) -> str:
         if audio.size == 0:
@@ -197,10 +195,7 @@ class OpenClawAssistant:
                     pcm = np.frombuffer(pcm_bytes, dtype=np.int16)
                     if porcupine.process(pcm) >= 0:
                         logging.info("Wake word detected.")
-                        try:
-                            self._beep()
-                        except Exception as error:
-                            logging.warning("Beep failed: %s", error)
+                        self._listen_feedback(start=True)
                         if self.settings.wakeword_start_delay > 0:
                             self.stop_event.wait(self.settings.wakeword_start_delay)
                         audio = self._record_command_audio()
@@ -209,6 +204,7 @@ class OpenClawAssistant:
                             self._process_prompt(prompt=text)
                         else:
                             logging.info("No speech detected after wake word.")
+                        self._listen_feedback(start=False)
         finally:
             porcupine.delete()
 
