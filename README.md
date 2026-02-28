@@ -37,6 +37,13 @@ cd openclaw-assistant
 ```
 
 ```bash
+# Update + run in foreground with logs
+./onboard/update.py --dev
+# or:
+OPENCLAW_DEV=1 ./onboard/update.py
+```
+
+```bash
 # Load env and run (first launch)
 set -a && source .env && set +a
 uv run python assistant.py
