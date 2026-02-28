@@ -28,7 +28,7 @@ cd openclaw-assistant
 
 ```bash
 # One-command onboarding (opens required sites + prompts for keys)
-./scripts/setup.sh
+./scripts/setup.py
 ```
 
 ```bash
