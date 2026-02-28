@@ -32,6 +32,11 @@ cd openclaw-assistant
 ```
 
 ```bash
+# Update + reload after repo changes
+./onboard/update.py
+```
+
+```bash
 # Load env and run (first launch)
 set -a && source .env && set +a
 uv run python assistant.py
