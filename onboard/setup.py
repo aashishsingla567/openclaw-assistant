@@ -89,7 +89,7 @@ def prepare_env() -> None:
             err(".env.example not found")
         env_path.write_text(env_example.read_text())
 
-    porcupine_key = input("Enter PORCUPINE_ACCESS_KEY: ").strip()
+    porcupine_key = input("Paste PORCUPINE_ACCESS_KEY: ").strip()
     if not porcupine_key:
         err("PORCUPINE_ACCESS_KEY is required")
 
@@ -105,6 +105,37 @@ def prepare_env() -> None:
     if not updated:
         new_lines.append(f"PORCUPINE_ACCESS_KEY={porcupine_key}")
     env_path.write_text("\n".join(new_lines) + "\n")
+
+
+def select_wakeword_file() -> None:
+    target = REPO_DIR / "models" / "porcupine" / "openclaw_mac.ppn"
+    info("Select your Porcupine .ppn wake word file")
+    try:
+        result = subprocess.run(
+            [
+                "osascript",
+                "-e",
+                "POSIX path of (choose file with prompt \"Select your .ppn wake word file\")",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        source_path = result.stdout.strip()
+        if not source_path:
+            err("No file selected")
+        source = Path(source_path)
+        if source.suffix.lower() != ".ppn":
+            err("Selected file is not a .ppn file")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+    except subprocess.CalledProcessError:
+        err("File selection cancelled or failed")
+
+
+def run_assistant() -> None:
+    info("Starting assistant")
+    run(["/usr/bin/env", "bash", "-lc", "set -a && source .env && set +a && uv run python assistant.py"])
 
 
 def print_next_steps() -> None:
@@ -141,7 +172,8 @@ def main() -> None:
         Step("Creating directories", create_directories),
         Step("Downloading Kokoro models", download_kokoro_models),
         Step("Preparing .env", prepare_env),
-        Step("Final instructions", print_next_steps),
+        Step("Selecting wake word file", select_wakeword_file),
+        Step("Starting assistant", run_assistant),
     ]
 
     run_steps(steps)

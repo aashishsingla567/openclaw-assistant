@@ -27,7 +27,7 @@ cd openclaw-assistant
 ```
 
 ```bash
-# One-command onboarding (opens required sites + prompts for keys)
+# One-command onboarding (opens required sites, asks for key, lets you pick .ppn, then runs)
 ./onboard/setup.py
 ```
 
@@ -40,6 +40,8 @@ uv run python assistant.py
 ---
 
 ## Next Steps After Onboarding
+
+Onboarding now starts the assistant automatically. If you want to run it manually later:
 
 ```bash
 set -a && source .env && set +a
