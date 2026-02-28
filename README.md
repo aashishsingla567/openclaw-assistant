@@ -24,10 +24,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ```bash
 # Clone repo
-cd ~/Development/experiment
-rm -rf openclaw-assistant
+mkdir -p ~/Projects
+cd ~/Projects
 
-git clone https://github.com/aashishsingla567/openclaw-assistant.git
+git clone https://github.com/<YOUR_GITHUB_USER>/openclaw-assistant.git
 cd openclaw-assistant
 ```
 
@@ -73,7 +73,7 @@ uv run python assistant.py
 4. Platform: `macOS` (Apple Silicon), Language: `English`.
 5. Download the `.ppn` file.
 6. Save it to:
-   `/Users/aashishsingla/Development/experiment/openclaw-assistant/models/porcupine/openclaw_mac.ppn`
+   `./models/porcupine/openclaw_mac.ppn`
 7. Export access key before launch:
 
 ```bash
@@ -176,6 +176,7 @@ openclaw-assistant/
 
 - Pipeline: wake word -> silence-bounded recording -> faster-whisper -> OpenClaw REST -> Kokoro TTS.
 - REST endpoint set via `OPENCLAW_REST_URL` (default `http://127.0.0.1:3000/v1/assistant`).
+- `.env` supports relative paths (e.g., `./models/...`).
 
 ---
 
