@@ -234,6 +234,7 @@ Logs:
 openclaw-assistant/
 ├── assistant.py
 ├── config.py
+├── tts_pipeline.py
 ├── .env.example
 ├── launchd/
 │   └── com.openclaw.assistant.plist

@@ -38,6 +38,42 @@ class Settings:
     tts_padding_ms: float
     tts_prewarm_ms: float
 
+    @property
+    def kokoro(self) -> KokoroConfig:
+        return KokoroConfig(
+            model_path=self.kokoro_model_path,
+            voices_path=self.kokoro_voices_path,
+            voice=self.kokoro_voice,
+            speed=self.kokoro_speed,
+            language=self.kokoro_language,
+        )
+
+    @property
+    def tts_playback(self) -> TTSPlaybackConfig:
+        return TTSPlaybackConfig(
+            output_device=self.audio_output_device,
+            fade_ms=self.tts_fade_ms,
+            padding_ms=self.tts_padding_ms,
+            prewarm_ms=self.tts_prewarm_ms,
+        )
+
+
+@dataclass(frozen=True)
+class KokoroConfig:
+    model_path: Path
+    voices_path: Path
+    voice: str
+    speed: float
+    language: str
+
+
+@dataclass(frozen=True)
+class TTSPlaybackConfig:
+    output_device: str | int | None
+    fade_ms: float
+    padding_ms: float
+    prewarm_ms: float
+
 
 def _maybe_int(value: str | None) -> str | int | None:
     if value is None or value == "":
@@ -62,6 +98,17 @@ def _env_int(name: str, default: int) -> int:
     return int(value)
 
 
+def _env_str(name: str, default: str) -> str:
+    value = os.getenv(name)
+    if value is None or value == "":
+        return default
+    return value
+
+
+def _env_path(name: str, default: Path) -> Path:
+    return Path(_env_str(name, str(default))).expanduser()
+
+
 def _load_env_file(path: Path) -> None:
     if not path.exists():
         return
@@ -81,56 +128,47 @@ def load_settings() -> Settings:
 
     return Settings(
         project_root=project_root,
-        porcupine_access_key=os.getenv("PORCUPINE_ACCESS_KEY", "").strip(),
-        porcupine_keyword_path=Path(
-            os.getenv(
-                "PORCUPINE_KEYWORD_PATH",
-                project_root / "models" / "porcupine" / "openclaw_mac.ppn",
-            )
-        ).expanduser(),
+        porcupine_access_key=_env_str("PORCUPINE_ACCESS_KEY", "").strip(),
+        porcupine_keyword_path=_env_path(
+            "PORCUPINE_KEYWORD_PATH",
+            project_root / "models" / "porcupine" / "openclaw_mac.ppn",
+        ),
         porcupine_sensitivity=_env_float("PORCUPINE_SENSITIVITY", 0.55),
-        audio_input_device=_maybe_int(os.getenv("OPENCLAW_AUDIO_INPUT_DEVICE")),
-        audio_output_device=_maybe_int(os.getenv("OPENCLAW_AUDIO_OUTPUT_DEVICE")),
+        audio_input_device=_maybe_int(_env_str("OPENCLAW_AUDIO_INPUT_DEVICE", "")),
+        audio_output_device=_maybe_int(_env_str("OPENCLAW_AUDIO_OUTPUT_DEVICE", "")),
         command_sample_rate=_env_int("OPENCLAW_COMMAND_SAMPLE_RATE", 16000),
         record_max_seconds=_env_float("OPENCLAW_RECORD_MAX_SECONDS", 8.0),
         record_min_seconds=_env_float("OPENCLAW_RECORD_MIN_SECONDS", 1.0),
         silence_seconds=_env_float("OPENCLAW_SILENCE_SECONDS", 0.9),
         silence_threshold=_env_float("OPENCLAW_SILENCE_THRESHOLD", 180.0),
         wakeword_start_delay=_env_float("OPENCLAW_WAKEWORD_START_DELAY", 0.4),
-        listen_start_prompt=os.getenv("OPENCLAW_LISTEN_START_PROMPT", "Listening").strip(),
-        wake_hello_prompt=os.getenv("OPENCLAW_WAKE_HELLO_PROMPT", "Hi").strip(),
-        whisper_model=os.getenv("OPENCLAW_WHISPER_MODEL", "small.en"),
-        whisper_device=os.getenv("OPENCLAW_WHISPER_DEVICE", "cpu"),
-        whisper_compute_type=os.getenv(
-            "OPENCLAW_WHISPER_COMPUTE_TYPE", "int8"
-        ).strip(),
-        whisper_language=os.getenv("OPENCLAW_WHISPER_LANGUAGE", "en"),
-        whisper_download_root=Path(
-            os.getenv(
-                "OPENCLAW_WHISPER_DOWNLOAD_ROOT",
-                project_root / "models" / "whisper",
-            )
-        ).expanduser(),
-        kokoro_model_path=Path(
-            os.getenv(
-                "KOKORO_MODEL_PATH",
-                project_root / "models" / "kokoro" / "kokoro-v1.0.onnx",
-            )
-        ).expanduser(),
-        kokoro_voices_path=Path(
-            os.getenv(
-                "KOKORO_VOICES_PATH",
-                project_root / "models" / "kokoro" / "voices-v1.0.bin",
-            )
-        ).expanduser(),
-        kokoro_voice=os.getenv("KOKORO_VOICE", "af_heart"),
+        listen_start_prompt=_env_str("OPENCLAW_LISTEN_START_PROMPT", "Listening").strip(),
+        wake_hello_prompt=_env_str("OPENCLAW_WAKE_HELLO_PROMPT", "Hi").strip(),
+        whisper_model=_env_str("OPENCLAW_WHISPER_MODEL", "small.en"),
+        whisper_device=_env_str("OPENCLAW_WHISPER_DEVICE", "cpu"),
+        whisper_compute_type=_env_str("OPENCLAW_WHISPER_COMPUTE_TYPE", "int8").strip(),
+        whisper_language=_env_str("OPENCLAW_WHISPER_LANGUAGE", "en"),
+        whisper_download_root=_env_path(
+            "OPENCLAW_WHISPER_DOWNLOAD_ROOT",
+            project_root / "models" / "whisper",
+        ),
+        kokoro_model_path=_env_path(
+            "KOKORO_MODEL_PATH",
+            project_root / "models" / "kokoro" / "kokoro-v1.0.onnx",
+        ),
+        kokoro_voices_path=_env_path(
+            "KOKORO_VOICES_PATH",
+            project_root / "models" / "kokoro" / "voices-v1.0.bin",
+        ),
+        kokoro_voice=_env_str("KOKORO_VOICE", "af_heart"),
         kokoro_speed=_env_float("KOKORO_SPEED", 1.0),
-        kokoro_language=os.getenv("KOKORO_LANGUAGE", "en-us"),
-        openclaw_rest_url=os.getenv(
-            "OPENCLAW_REST_URL", "http://127.0.0.1:3000/v1/assistant"
+        kokoro_language=_env_str("KOKORO_LANGUAGE", "en-us"),
+        openclaw_rest_url=_env_str(
+            "OPENCLAW_REST_URL",
+            "http://127.0.0.1:3000/v1/assistant",
         ).strip(),
         openclaw_timeout_seconds=_env_float("OPENCLAW_TIMEOUT_SECONDS", 10.0),
-        wakeword_label=os.getenv("WAKEWORD_LABEL", "wake word").strip(),
+        wakeword_label=_env_str("WAKEWORD_LABEL", "wake word").strip(),
         tts_fade_ms=_env_float("OPENCLAW_TTS_FADE_MS", 20.0),
         tts_padding_ms=_env_float("OPENCLAW_TTS_PADDING_MS", 40.0),
         tts_prewarm_ms=_env_float("OPENCLAW_TTS_PREWARM_MS", 50.0),
