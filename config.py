@@ -62,8 +62,22 @@ def _env_int(name: str, default: int) -> int:
     return int(value)
 
 
+def _load_env_file(path: Path) -> None:
+    if not path.exists():
+        return
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
 def load_settings() -> Settings:
     project_root = Path(__file__).resolve().parent
+    _load_env_file(project_root / ".env")
 
     return Settings(
         project_root=project_root,
