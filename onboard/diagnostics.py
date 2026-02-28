@@ -4,12 +4,14 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
 REPO_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_DIR))
 
 import numpy as np
+import pvporcupine
 import requests
 import sounddevice as sd
 from faster_whisper import WhisperModel
@@ -80,14 +82,61 @@ def test_openclaw(text: str) -> None:
     print(response.text)
 
 
+def test_wakeword(timeout_seconds: float) -> None:
+    settings = load_settings()
+    if not settings.porcupine_access_key:
+        raise RuntimeError("Missing PORCUPINE_ACCESS_KEY.")
+    if not settings.porcupine_keyword_path.exists():
+        raise RuntimeError(f"Missing wakeword model: {settings.porcupine_keyword_path}")
+
+    porcupine = pvporcupine.create(
+        access_key=settings.porcupine_access_key,
+        keyword_paths=[str(settings.porcupine_keyword_path)],
+        sensitivities=[settings.porcupine_sensitivity],
+    )
+    print("Wakeword settings:")
+    print(f"  label={settings.wakeword_label}")
+    print(f"  keyword_path={settings.porcupine_keyword_path}")
+    print(f"  sensitivity={settings.porcupine_sensitivity}")
+    print(f"  input_device={settings.audio_input_device}")
+    print(f"  sample_rate={porcupine.sample_rate}")
+    print(f"  frame_length={porcupine.frame_length}")
+    print(
+        f"Listening for wakeword for up to {timeout_seconds:.1f}s... "
+        f"say '{settings.wakeword_label}'."
+    )
+    deadline = time.monotonic() + timeout_seconds
+
+    try:
+        with sd.RawInputStream(
+            samplerate=porcupine.sample_rate,
+            blocksize=porcupine.frame_length,
+            dtype="int16",
+            channels=1,
+            device=settings.audio_input_device,
+        ) as stream:
+            while time.monotonic() < deadline:
+                pcm_bytes, _ = stream.read(porcupine.frame_length)
+                pcm = np.frombuffer(pcm_bytes, dtype=np.int16)
+                if porcupine.process(pcm) >= 0:
+                    print("Wakeword detected.")
+                    return
+    finally:
+        porcupine.delete()
+
+    print("Wakeword NOT detected before timeout.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--list-devices", action="store_true")
     parser.add_argument("--tts", action="store_true")
     parser.add_argument("--stt", action="store_true")
     parser.add_argument("--openclaw", action="store_true")
+    parser.add_argument("--wakeword", action="store_true")
     parser.add_argument("--text", default="Testing text to speech.")
     parser.add_argument("--seconds", type=float, default=3.0)
+    parser.add_argument("--wakeword-timeout", type=float, default=10.0)
     args = parser.parse_args()
 
     if args.list_devices:
@@ -100,8 +149,10 @@ def main() -> None:
         test_stt(args.seconds)
     if args.openclaw:
         test_openclaw(args.text)
+    if args.wakeword:
+        test_wakeword(args.wakeword_timeout)
 
-    if not (args.tts or args.stt or args.openclaw or args.list_devices):
+    if not (args.tts or args.stt or args.openclaw or args.wakeword or args.list_devices):
         parser.print_help()
         sys.exit(1)
 
