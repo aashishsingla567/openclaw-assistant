@@ -127,7 +127,10 @@ openclaw cron add \
 ## 5) launchd Setup (Auto-Start)
 
 ```bash
-cp launchd/com.openclaw.assistant.plist ~/Library/LaunchAgents/com.openclaw.assistant.plist
+# Replace __REPO_PATH__ in the plist before installing
+sed "s#__REPO_PATH__#$(pwd)#g" launchd/com.openclaw.assistant.plist > /tmp/com.openclaw.assistant.plist
+
+cp /tmp/com.openclaw.assistant.plist ~/Library/LaunchAgents/com.openclaw.assistant.plist
 ```
 
 ```bash
