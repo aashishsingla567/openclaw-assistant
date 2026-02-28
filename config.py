@@ -34,6 +34,8 @@ class Settings:
     openclaw_rest_url: str
     openclaw_timeout_seconds: float
     wakeword_label: str
+    tts_fade_ms: float
+    tts_padding_ms: float
 
 
 def _maybe_int(value: str | None) -> str | int | None:
@@ -114,4 +116,6 @@ def load_settings() -> Settings:
         ).strip(),
         openclaw_timeout_seconds=_env_float("OPENCLAW_TIMEOUT_SECONDS", 10.0),
         wakeword_label=os.getenv("WAKEWORD_LABEL", "wake word").strip(),
+        tts_fade_ms=_env_float("OPENCLAW_TTS_FADE_MS", 20.0),
+        tts_padding_ms=_env_float("OPENCLAW_TTS_PADDING_MS", 40.0),
     )

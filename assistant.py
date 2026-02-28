@@ -72,6 +72,18 @@ class OpenClawAssistant:
                 lang=self.settings.kokoro_language,
             )
             audio = np.asarray(samples, dtype=np.float32)
+            fade_ms = max(0.0, self.settings.tts_fade_ms)
+            pad_ms = max(0.0, self.settings.tts_padding_ms)
+            fade_len = int(sample_rate * (fade_ms / 1000.0))
+            pad_len = int(sample_rate * (pad_ms / 1000.0))
+            if fade_len > 0 and audio.size > fade_len * 2:
+                fade_in = np.linspace(0.0, 1.0, fade_len, dtype=np.float32)
+                fade_out = np.linspace(1.0, 0.0, fade_len, dtype=np.float32)
+                audio[:fade_len] *= fade_in
+                audio[-fade_len:] *= fade_out
+            if pad_len > 0:
+                pad = np.zeros(pad_len, dtype=np.float32)
+                audio = np.concatenate([pad, audio, pad])
             sd.play(audio, sample_rate, device=self.settings.audio_output_device)
             sd.wait()
 
