@@ -30,6 +30,7 @@ class Settings:
     kokoro_language: str
     openclaw_rest_url: str
     openclaw_timeout_seconds: float
+    wakeword_label: str
 
 
 def _maybe_int(value: str | None) -> str | int | None:
@@ -106,4 +107,5 @@ def load_settings() -> Settings:
             "OPENCLAW_REST_URL", "http://127.0.0.1:3000/v1/assistant"
         ).strip(),
         openclaw_timeout_seconds=_env_float("OPENCLAW_TIMEOUT_SECONDS", 10.0),
+        wakeword_label=os.getenv("WAKEWORD_LABEL", "wake word").strip(),
     )

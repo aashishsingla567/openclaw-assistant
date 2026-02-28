@@ -27,7 +27,7 @@ cd openclaw-assistant
 ```
 
 ```bash
-# One-command onboarding (opens required sites, asks for key, lets you pick .ppn, then runs)
+# One-command onboarding (asks for key + wake word, lets you pick .ppn, then runs)
 ./onboard/setup.py
 ```
 
@@ -119,13 +119,19 @@ uv run python assistant.py
 5. Download the `.ppn` file.
 6. Save it to:
    `./models/porcupine/openclaw_mac.ppn`
-7. Export access key before launch:
+7. Set wake word label in `.env`:
+
+```bash
+WAKEWORD_LABEL=OpenClaw
+```
+
+8. Export access key before launch:
 
 ```bash
 export PORCUPINE_ACCESS_KEY='YOUR_PICOVOICE_ACCESS_KEY'
 ```
 
-8. Tune sensitivity in `.env`:
+9. Tune sensitivity in `.env`:
 
 ```bash
 PORCUPINE_SENSITIVITY=0.55

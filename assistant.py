@@ -168,7 +168,8 @@ class OpenClawAssistant:
             sensitivities=[self.settings.porcupine_sensitivity],
         )
         logging.info(
-            "Wake loop started at %d Hz with frame length %d",
+            "Wake loop started for '%s' at %d Hz with frame length %d",
+            self.settings.wakeword_label,
             porcupine.sample_rate,
             porcupine.frame_length,
         )

@@ -89,7 +89,7 @@ def prepare_env() -> None:
             err(".env.example not found")
         env_path.write_text(env_example.read_text())
     else:
-        choice = input(".env already exists. Update PORCUPINE_ACCESS_KEY? [y/N]: ").strip().lower()
+        choice = input(".env already exists. Update keys/labels? [y/N]: ").strip().lower()
         if choice != "y":
             print("Warning: keeping existing .env")
             return
@@ -98,6 +98,10 @@ def prepare_env() -> None:
     if not porcupine_key:
         err("PORCUPINE_ACCESS_KEY is required")
 
+    wakeword_label = input("Wake word phrase (e.g., OpenClaw): ").strip()
+    if not wakeword_label:
+        wakeword_label = "wake word"
+
     lines = env_path.read_text().splitlines()
     updated = False
     new_lines = []
@@ -105,10 +109,14 @@ def prepare_env() -> None:
         if line.startswith("PORCUPINE_ACCESS_KEY="):
             new_lines.append(f"PORCUPINE_ACCESS_KEY={porcupine_key}")
             updated = True
+        elif line.startswith("WAKEWORD_LABEL="):
+            new_lines.append(f"WAKEWORD_LABEL={wakeword_label}")
+            updated = True
         else:
             new_lines.append(line)
     if not updated:
         new_lines.append(f"PORCUPINE_ACCESS_KEY={porcupine_key}")
+        new_lines.append(f"WAKEWORD_LABEL={wakeword_label}")
     env_path.write_text("\n".join(new_lines) + "\n")
 
 
