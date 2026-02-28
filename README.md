@@ -39,6 +39,22 @@ uv run python assistant.py
 
 ---
 
+## Next Steps After Onboarding
+
+```bash
+set -a && source .env && set +a
+uv run python assistant.py
+```
+
+(Optional) Install launchd:
+
+```bash
+sed "s#__REPO_PATH__#$(pwd)#g" launchd/com.openclaw.assistant.plist > /tmp/com.openclaw.assistant.plist
+cp /tmp/com.openclaw.assistant.plist ~/Library/LaunchAgents/com.openclaw.assistant.plist
+launchctl unload ~/Library/LaunchAgents/com.openclaw.assistant.plist 2>/dev/null || true
+launchctl load ~/Library/LaunchAgents/com.openclaw.assistant.plist
+```
+
 ## Manual Setup (if auto setup fails)
 
 If onboarding runs into a dependency or permission issue, use the manual steps below. The onboarding script is designed to be extensible; it will either complete the setup or tell you exactly what to fix.
