@@ -1,10 +1,20 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable, Iterable
 
 REPO_DIR = Path(__file__).resolve().parents[1]
+
+
+@dataclass(frozen=True)
+class Step:
+    name: str
+    action: Callable[[], None]
 
 
 def info(msg: str) -> None:
@@ -21,34 +31,35 @@ def run(cmd: list[str], check: bool = True) -> None:
 
 
 def require_cmd(name: str, install_hint: str) -> None:
-    if subprocess.call(["/usr/bin/env", "bash", "-lc", f"command -v {name} >/dev/null 2>&1"]) != 0:
+    result = subprocess.call(["/usr/bin/env", "bash", "-lc", f"command -v {name} >/dev/null 2>&1"])
+    if result != 0:
         err(f"{name} is required. {install_hint}")
 
 
-def main() -> None:
-    require_cmd("brew", "Install from https://brew.sh")
-    require_cmd("uv", "Install from https://astral.sh/uv")
-
-    info("Opening required sites")
+def open_required_sites() -> None:
     try:
-        run(["open", "https://console.picovoice.ai/"])  # macOS
+        run(["open", "https://console.picovoice.ai/"])
     except Exception:
         pass
 
-    info("Installing system dependencies")
+
+def install_system_deps() -> None:
     run(["brew", "install", "portaudio", "libsndfile", "espeak-ng", "git-lfs"])
 
-    info("Syncing Python dependencies")
+
+def sync_python_deps() -> None:
     os.chdir(REPO_DIR)
     run(["uv", "sync"])
 
-    info("Creating directories")
+
+def create_directories() -> None:
     (REPO_DIR / "models" / "kokoro").mkdir(parents=True, exist_ok=True)
     (REPO_DIR / "models" / "porcupine").mkdir(parents=True, exist_ok=True)
     (REPO_DIR / "models" / "whisper").mkdir(parents=True, exist_ok=True)
     (REPO_DIR / "launchd").mkdir(parents=True, exist_ok=True)
 
-    info("Downloading Kokoro models")
+
+def download_kokoro_models() -> None:
     kokoro_model = REPO_DIR / "models" / "kokoro" / "kokoro-v1.0.onnx"
     kokoro_voices = REPO_DIR / "models" / "kokoro" / "voices-v1.0.bin"
 
@@ -69,7 +80,8 @@ def main() -> None:
             "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin",
         ])
 
-    info("Preparing .env")
+
+def prepare_env() -> None:
     env_path = REPO_DIR / ".env"
     if not env_path.exists():
         env_example = REPO_DIR / ".env.example"
@@ -94,6 +106,8 @@ def main() -> None:
         new_lines.append(f"PORCUPINE_ACCESS_KEY={porcupine_key}")
     env_path.write_text("\n".join(new_lines) + "\n")
 
+
+def print_next_steps() -> None:
     print(
         "\nPlace your Porcupine wake word model at:\n"
         "  ./models/porcupine/openclaw_mac.ppn\n\n"
@@ -108,6 +122,29 @@ def main() -> None:
         "   launchctl unload ~/Library/LaunchAgents/com.openclaw.assistant.plist 2>/dev/null || true\n"
         "   launchctl load ~/Library/LaunchAgents/com.openclaw.assistant.plist\n"
     )
+
+
+def run_steps(steps: Iterable[Step]) -> None:
+    for step in steps:
+        info(step.name)
+        step.action()
+
+
+def main() -> None:
+    require_cmd("brew", "Install from https://brew.sh")
+    require_cmd("uv", "Install from https://astral.sh/uv")
+
+    steps = [
+        Step("Opening required sites", open_required_sites),
+        Step("Installing system dependencies", install_system_deps),
+        Step("Syncing Python dependencies", sync_python_deps),
+        Step("Creating directories", create_directories),
+        Step("Downloading Kokoro models", download_kokoro_models),
+        Step("Preparing .env", prepare_env),
+        Step("Final instructions", print_next_steps),
+    ]
+
+    run_steps(steps)
 
 
 if __name__ == "__main__":

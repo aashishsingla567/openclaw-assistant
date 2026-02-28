@@ -28,7 +28,7 @@ cd openclaw-assistant
 
 ```bash
 # One-command onboarding (opens required sites + prompts for keys)
-./scripts/setup.py
+./onboard/setup.py
 ```
 
 ```bash
@@ -40,6 +40,8 @@ uv run python assistant.py
 ---
 
 ## Manual Setup (if auto setup fails)
+
+If onboarding runs into a dependency or permission issue, use the manual steps below. The onboarding script is designed to be extensible; it will either complete the setup or tell you exactly what to fix.
 
 ```bash
 # Install system deps (Apple Silicon macOS)
